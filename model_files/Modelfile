@@ -1,4 +1,4 @@
-FROM gemma3:27b
+FROM phi4:14b
 
 PARAMETER temperature 0.2
 

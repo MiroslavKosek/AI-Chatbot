@@ -1,6 +1,6 @@
 services:
   ollama:
-    image: ollama/ollama:latest
+    image: ollama/ollama:rocm
     ports:
       - 11434:11434
     volumes:
@@ -13,6 +13,10 @@ services:
     environment:
       - "OLLAMA_KEEP_ALIVE=24h"
       - "OLLAMA_HOST=0.0.0.0"
+      - "HSA_OVERRIDE_GFX_VERSION=11.0.0"
+    devices:
+      - /dev/kfd:/dev/kfd
+      - /dev/dri:/dev/dri
     entrypoint: ["/bin/sh", "/model_files/run_ollama.sh"]
     networks:
       - ollama-docker
