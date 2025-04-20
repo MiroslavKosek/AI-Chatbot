@@ -65,7 +65,6 @@ docker compose -f docker-compose-amd-gpu.yaml up -d
 ## How it works?
 
 ![Connection diagram of the app](./docs/images/connection_diagram.svg)
-<img src="./docs/images/connection_diagram.svg">
 
 ### AI
 
