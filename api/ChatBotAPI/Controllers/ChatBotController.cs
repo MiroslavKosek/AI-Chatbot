@@ -1,69 +1,50 @@
-using System.Text;
+ï»¿using Microsoft.AspNetCore.Mvc;
 using System.Text.Json;
-using Microsoft.AspNetCore.Mvc;
-using System.Collections.Generic;
-using System.Linq;
-using System;
-using WebApplication1.Data;
-using Microsoft.AspNetCore.Identity;
-using Qdrant.Client;
-using Qdrant.Client.Grpc;
+using System.Text;
+using ChatBotAPI.Models;
 
-namespace WebApplication1.Controllers
+namespace ChatBotAPI.Controllers
 {
     [ApiController]
     [Route("[controller]")]
-    public class WeatherForecastController : ControllerBase
+    public class ChatBotController : Controller
     {
         private readonly HttpClient _httpClient;
-        private static string _receivedString;
-        private static QdrantClient qdrant = new QdrantClient("127.0.0.1", 6333);
         private static Dictionary<Guid, List<string>> _messageStore = new Dictionary<Guid, List<string>>();
 
-        public WeatherForecastController(IHttpClientFactory httpClientFactory)
+        public ChatBotController(IHttpClientFactory httpClientFactory)
         {
             _httpClient = httpClientFactory.CreateClient();
-        }
-
-        [HttpGet("receive")]
-        public async Task<IActionResult> ReceiveString([FromQuery] string input)
-        {
-            if (string.IsNullOrWhiteSpace(input))
-                return BadRequest("Zadaný vstup je prázdný.");
-
-            _receivedString = input;
-
-            return Ok($"String pøijat: {_receivedString}");
         }
 
         [HttpPost("send")]
         public async Task<IActionResult> SendStringToOtherEndpoint([FromBody] ChatMessage data)
         {
             if (string.IsNullOrWhiteSpace(data.Message))
-                return BadRequest("Zpráva je prázdná.");
+                return BadRequest("The message is empty.");
 
-            if (!Guid.TryParse(data.guidId, out Guid messageGuid))
-                return BadRequest("Neplatné GUID.");
+            if (!Guid.TryParse(data.GuidId, out Guid messageGuid))
+                return BadRequest("Invalid GUID.");
 
             string messageContent = data.Message;
 
             // === 1. Embedding vstupu ===
             var embedPayload = new { model = "bge-m3", input = messageContent };
-            var embedResponse = await _httpClient.PostAsJsonAsync("http://192.168.153.186:11434/api/embed", embedPayload);
+            var embedResponse = await _httpClient.PostAsJsonAsync("http://host.docker.internal:11435/api/embed", embedPayload);
             if (!embedResponse.IsSuccessStatusCode)
-                return StatusCode((int)embedResponse.StatusCode, $"Chyba pøi embedování vstupu.");
+                return StatusCode((int)embedResponse.StatusCode, $"Error when embedding input.");
 
             var embedJson = await embedResponse.Content.ReadAsStringAsync();
             using var embedDoc = JsonDocument.Parse(embedJson);
             var embeddingsElement = embedDoc.RootElement.GetProperty("embeddings");
 
-            // Pøedpokládáme, že nás zajímá první pole embeddings
+            // We suppose we are interested in the first embeddings field
             var vector = embeddingsElement[0]
                 .EnumerateArray()
                 .Select(x => x.GetSingle())
                 .ToArray();
 
-            // === 2. Vyhledání v Qdrant ===
+            // === 2. Searching in Qdrant ===
             var searchPayload = new
             {
                 vector = vector,
@@ -71,9 +52,9 @@ namespace WebApplication1.Controllers
                 with_payload = true
             };
 
-            var searchRes = await _httpClient.PostAsJsonAsync("http://localhost:6333/collections/dotted/points/search", searchPayload);
+            var searchRes = await _httpClient.PostAsJsonAsync("http://host.docker.internal:6333/collections/dotted/points/search", searchPayload);
             if (!searchRes.IsSuccessStatusCode)
-                return StatusCode((int)searchRes.StatusCode, "Chyba pøi vyhledávání v Qdrantu.");
+                return StatusCode((int)searchRes.StatusCode, "Error when searching in Qdrant.");
             /*var searchRes = await qdrant.SearchAsync(
                 collectionName: "memory",
                 vector: vector,
@@ -101,31 +82,31 @@ namespace WebApplication1.Controllers
                 .Select(hit => hit.GetProperty("payload").GetProperty("text").GetString())
                 .ToList();
 
-            // === 3. Sestavení zpráv pro LLM ===
+            // === 3. Compiling messages for LLM ====
             if (!_messageStore.ContainsKey(messageGuid))
                 _messageStore[messageGuid] = new List<string>();
-            _messageStore[messageGuid].Add(messageContent); // pøidání vstupu
+            _messageStore[messageGuid].Add(messageContent); // adding an input
 
             var messages = new List<object>();
 
-            // Kontext ze znalostní databáze
+            // Context from the knowledge base
             foreach (var match in matches)
             {
-                messages.Add(new { role = "system", content = $"Relevantní znalost: {match}" });
+                messages.Add(new { role = "system", content = $"Relevant knowledge: {match}" });
                 Console.WriteLine(match);
             }
 
-            // Historie zpráv
+            // Message history
             messages.AddRange(_messageStore[messageGuid]
                 .Select((msg, index) => new
                 {
-                    role = index % 2 == 0 ? "user" : "assistant",
+                    role = index % 3 == 0 ? "system" : index % 2 == 0 ? "user" : "assistant",
                     content = msg
                 }));
 
             var payload = new
             {
-                model = "ideathon",
+                model = "ai_chatbot",
                 messages = messages,
                 stream = false
             };
@@ -133,13 +114,13 @@ namespace WebApplication1.Controllers
             var json = JsonSerializer.Serialize(payload);
             var content = new StringContent(json, Encoding.UTF8, "application/json");
 
-            var response = await _httpClient.PostAsync("http://192.168.153.186:11434/api/chat", content);
+            var response = await _httpClient.PostAsync("http://host.docker.internal:11434/api/chat", content);
 
             if (response.IsSuccessStatusCode)
             {
                 var responseBody = await response.Content.ReadAsStringAsync();
                 var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
-                var chatResponse = JsonSerializer.Deserialize<aiAssist>(responseBody, options);
+                var chatResponse = JsonSerializer.Deserialize<AIAssist>(responseBody, options);
 
                 if (chatResponse?.Message != null)
                 {
@@ -151,36 +132,24 @@ namespace WebApplication1.Controllers
             else
             {
                 var error = await response.Content.ReadAsStringAsync();
-                return StatusCode((int)response.StatusCode, $"Chyba: {error}");
+                return StatusCode((int)response.StatusCode, $"Error: {error}");
             }
         }
 
-
-
-
-
-
-
-        
-        public class EmbedRequest
-        {
-            public string Text { get; set; }
-        }
-        
         [HttpPost("embed-txt-files")]
         public async Task<IActionResult> EmbedTxtFilesIndividually()
         {
-            string folderPath = @"C:\Users\Honza\Desktop\datasetCode\scraped_texts";
-            string embeddingUrl = "http://192.168.153.186:11434/api/embed";
-            string qdrantUrl = "http://192.168.153.200:6333";
+            string folderPath = "ScrappedData/";
+            string embeddingUrl = "http://host.docker.internal:11435/api/embed";
+            string qdrantUrl = "http://host.docker.internal:6333";
             string collectionName = "dotted";
 
             if (!Directory.Exists(folderPath))
-                return NotFound("Složka neexistuje.");
+                return NotFound("Folder does not exist.");
 
             var txtFiles = Directory.GetFiles(folderPath, "*.txt");
             if (txtFiles.Length == 0)
-                return BadRequest("Ve složce nejsou žádné .txt soubory.");
+                return BadRequest("There are no .txt files in the folder.");
 
             var http = new HttpClient();
 
@@ -192,8 +161,8 @@ namespace WebApplication1.Controllers
                 {
                     vectors = new
                     {
-                        size = 1024,        
-                        distance = "Dot"  
+                        size = 1024,
+                        distance = "Dot"
                     }
                 };
 
@@ -203,7 +172,7 @@ namespace WebApplication1.Controllers
                 if (!createRes.IsSuccessStatusCode)
                 {
                     var err = await createRes.Content.ReadAsStringAsync();
-                    return StatusCode((int)createRes.StatusCode, $"Chyba pøi vytváøení kolekce: {err}");
+                    return StatusCode((int)createRes.StatusCode, $"Error while creating a collection: {err}");
                 }
             }
 
@@ -213,49 +182,47 @@ namespace WebApplication1.Controllers
             {
                 var text = await System.IO.File.ReadAllTextAsync(file);
 
-                // Poslat do embedding modelu
+                // Send to embedding model
                 var embedPayload = new { model = "bge-m3", input = text };
                 var embedRes = await http.PostAsJsonAsync(embeddingUrl, embedPayload);
 
                 if (!embedRes.IsSuccessStatusCode)
-                    return StatusCode((int)embedRes.StatusCode, $"Chyba pøi embedování souboru: {file}");
+                    return StatusCode((int)embedRes.StatusCode, $"Error while embedding a file: {file}");
 
                 var resJson = await embedRes.Content.ReadAsStringAsync();
                 using var doc = JsonDocument.Parse(resJson);
 
                 if (!doc.RootElement.TryGetProperty("embeddings", out var embeddingsElement))
-                    return StatusCode(500, "Odpovìï z embedding modelu neobsahuje 'embeddings'.");
+                    return StatusCode(500, "The response from the embedding model does not contain 'embeddings'.");
 
                 if (embeddingsElement.GetArrayLength() == 0)
-                    return StatusCode(500, "Odpovìï obsahuje prázdné pole 'embeddings'.");
+                    return StatusCode(500, "The response contains an empty 'embeddings' field.");
 
                 var vector = embeddingsElement[0].EnumerateArray().Select(x => x.GetSingle()).ToArray();
 
-                // Uložit do Qdrantu
+                // Save to Qdrant
                 var upsertPayload = new
                 {
                     points = new[]
                     {
-                new
-                {
-                    id = idCounter,
-                    vector = vector,
-                    payload = new { text = text }
-                }
-            }
+                        new
+                        {
+                            id = idCounter,
+                            vector = vector,
+                            payload = new { text = text }
+                        }
+                    }
                 };
                 var upsertContent = JsonContent.Create(upsertPayload);
                 var upsertRes = await http.PutAsync($"{qdrantUrl}/collections/{collectionName}/points", upsertContent);
 
                 if (!upsertRes.IsSuccessStatusCode)
-                    return StatusCode((int)upsertRes.StatusCode, $"Chyba pøi ukládání do Qdrantu (soubor {file})");
+                    return StatusCode((int)upsertRes.StatusCode, $"Error when saving to Qdrant (file {file})");
 
                 idCounter++;
             }
 
-            return Ok("Všechny soubory byly úspìšnì embedovány a uloženy do Qdrantu.");
+            return Ok("All files were successfully embedded and saved to Qdrant.");
         }
-        
-
     }
 }

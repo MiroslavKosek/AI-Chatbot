@@ -1,8 +1,8 @@
 ﻿using System.Text.Json.Serialization;
 
-namespace WebApplication1.Data
+namespace ChatBotAPI.Models
 {
-    public class aiAssist
+    public class AIAssist
     {
         [JsonPropertyName("model")]
         public string Model { get; set; }

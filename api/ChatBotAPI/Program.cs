@@ -1,10 +1,3 @@
-﻿using Qdrant.Client;
-using Qdrant.Client.Grpc;
-using Google.Protobuf.Collections;
-using System.Text.Json;
-using System.Text;
-using System.Net.Http.Json;
-
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
@@ -18,27 +11,12 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowFrontend", policy =>
     {
-        policy.WithOrigins("http://192.168.153.193:3000") // sem dej IP frontend app
+        policy.WithOrigins("http://host.docker.internal:3000") // put the frontend app IP here
               .AllowAnyHeader()
               .AllowAnyMethod();
     });
 });
 var app = builder.Build();
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
@@ -46,7 +24,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
-app.UseCors("AllowFrontend");
+
 app.UseHttpsRedirection();
 
 app.UseAuthorization();
