@@ -1,0 +1,11 @@
+FROM ollama/ollama:latest
+
+COPY ./Modelfile /Modelfile
+
+# Create custom model
+RUN ollama serve & server=$! ; sleep 2 ; ollama pull phi4:14b ; ollama create ai_chatbot -f Modelfile ; kill $server
+
+# Run the custom model
+ENTRYPOINT [ "/bin/bash", "-c", "(sleep 2 ; ollama run ai_chatbot '') & exec /bin/ollama $0" ]
+
+CMD [ "serve" ]

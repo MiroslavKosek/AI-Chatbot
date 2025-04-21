@@ -1,0 +1,9 @@
+FROM ollama/ollama:rocm
+
+# Create custom model
+RUN ollama serve & server=$! ; sleep 2 ; ollama pull bge-m3 ; kill $server
+
+# Run the custom model
+ENTRYPOINT [ "/bin/bash", "-c", "(sleep 2 ; ollama run bge-m3 '') & exec /bin/ollama $0" ]
+
+CMD [ "serve" ]
