@@ -62,7 +62,7 @@ docker compose -f docker-compose-nvidia-gpu.yaml up -d
 docker compose -f docker-compose-amd-gpu.yaml up -d
 ```
 
-## How it works?
+## How does it work?
 
 ![Connection diagram of the app](./docs/images/connection_diagram.svg)
 
@@ -70,23 +70,23 @@ docker compose -f docker-compose-amd-gpu.yaml up -d
 
 #### BGE-M3
 
-BGE-M3 model is used for embedding scraped data, that are then added to Qdrant database. BGE-M3 is also used for embedding user's prompts, which are then used for querying database entries, that are used in prompts with role 'system'.
+The BGE-M3 model is used for embedding scraped data, which is then added to the Qdrant database. BGE-M3 is also used for embedding user prompts, which are then used to query database entries, which are used in prompts with the role 'system'.
 
 #### Phi-4
 
-Phi-4 model is used for generating relevant answers for user's prompts. It draws informations from prompts with role 'system', which are selected from Qdrant database.
+The Phi-4 model is used to generate relevant answers to user prompts. It draws information from prompts with the role 'system', which are selected from the Qdrant database.
 
 ### Web Scrapers
 
-...
+Web Scrapers are used to scrape relevant data from websites. The data are then used for AI knowledge.
 
 ### Qdrant database
 
-...
+The Qdrant database is used for storing embedded scraped data. The API queries the database to find relevant information for a given user prompt.
 
 ### API
 
-...
+API sits between the front-end, the Qdrant database, and AIs. The front-end sends a user prompt to the API, which uses the BGE-M3 model to embed the prompt. The API then queries the database to find relevant information and sends it to the Phi-4 model. The generated answer is then sent to the front-end.
 
 ### Front-end
 
