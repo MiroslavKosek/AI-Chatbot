@@ -28,7 +28,7 @@ namespace ChatBotAPI.Controllers
 
             string messageContent = data.Message;
 
-            // === 1. Embedding vstupu ===
+            // === 1. Embedding input ===
             var embedPayload = new { model = "bge-m3", input = messageContent };
             var embedResponse = await _httpClient.PostAsJsonAsync("http://host.docker.internal:11435/api/embed", embedPayload);
             if (!embedResponse.IsSuccessStatusCode)
