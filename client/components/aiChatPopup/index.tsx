@@ -16,9 +16,9 @@ export default function Chatbot() {
   const [chatHistory, setChatHistory] = useState<{ sender: string; text: string }[]>([]);
   const [guidForSession, setGuidForSession] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [hasGreeted, setHasGreeted] = useState(false); // Zajišťuje, že úvodní zpráva se pošle pouze jednou
+  const [hasGreeted, setHasGreeted] = useState(false); // Ensures that the initial message is sent only once
 
-  // Funkce pro odeslání zprávy uživatele a následnou odpověď chatbota
+  // Function for sending a user message and subsequent chatbot response
   const handleSubmit = async () => {
     if (!userInput.trim()) return;
     const guid = guidForSession;
@@ -35,21 +35,21 @@ export default function Chatbot() {
       const response = await post("/send", { Message: message, guidId: guid });
       console.log(response.data.message.content);
 
-      const reply = response.data?.message.content || "Chyba: prázdná odpověď.";
+      const reply = response.data?.message.content || "Error: blank answer.";
 
       setChatHistory((prev) => [...prev, { sender: "bot", text: reply }]);
     } catch (error) {
-      console.error("Chyba při komunikaci s API:", error);
+      console.error("Error communicating with API:", error);
       setChatHistory((prev) => [
         ...prev,
-        { sender: "bot", text: "Chyba při načítání odpovědi." },
+        { sender: "bot", text: "Error loading response." },
       ]);
     }
 
     setIsLoading(false);
   };
 
-  // Načti úvodní zprávu po jedné sekundě
+  // Load initial message after one second
   useEffect(() => {
     if (!hasGreeted) {
       const sessionGuid = generateGuid();
@@ -58,7 +58,7 @@ export default function Chatbot() {
       const timer = setTimeout(() => {
         setChatHistory((prev) => [
           ...prev,
-          { sender: "bot", text: "Dobrý den, já jsem M.A.I.A.! Jak Vám mohu pomoci? 🐾🐾" },
+          { sender: "bot", text: "Hello, I'm M.A.I.A.! How can I help you? 🐾🐾" },
         ]);
         setHasGreeted(true);
       }, 1000);
@@ -67,7 +67,7 @@ export default function Chatbot() {
     }
   }, [hasGreeted]);
 
-  // Funkce pro postupné odesílání zpráv s intervalem
+  // Function for successive sending of messages with interval
   const sendMessagesSequentially = async (messages: string[]) => {
     for (let i = 0; i < messages.length; i++) {
       await new Promise<void>((resolve) => {
@@ -75,7 +75,7 @@ export default function Chatbot() {
           const message = messages[i];
           setChatHistory((prev) => [...prev, { sender: "bot", text: message }]);
           resolve();
-        }, i * 1000); // Mezi každou zprávou je 1 sekunda pauza
+        }, i * 1000); // There is a 1 second pause between each message
       });
     }
   };
@@ -88,9 +88,8 @@ export default function Chatbot() {
     <div className="w-[400px] h-[600px] border rounded-2xl shadow-md overflow-hidden flex flex-col font-sans">
       {/* Header */}
       <div className="bg-red-600 text-white flex items-center  px-4 ">
-        <Image src="/maia-nase-milovana.png" alt="Liberec logo" width={80} height={80} />
+        <Image src="/maia-nase-milovana.png" alt="M.A.I.A. logo" width={80} height={80} />
         <div>
-          <p className="font-[1000]">Statutární město Liberec</p>
           <p className="font-semibold">M.A.I.A. AI Chatbot 1.0</p>
         </div>
       </div>
@@ -110,7 +109,7 @@ export default function Chatbot() {
           </div>
         ))}
         {isLoading && (
-          <div className="text-sm text-gray-500">M.A.I.A. přemýšlí...</div>
+          <div className="text-sm text-gray-500">M.A.I.A. is thinking...</div>
         )}
       </div>
 
@@ -120,7 +119,7 @@ export default function Chatbot() {
           <span className="text-gray-500 text-lg font-medium">Tt</span>
           <input
             type="text"
-            placeholder="Vyhledej informace"
+            placeholder="Search for information"
             value={userInput}
             onChange={(e) => setUserInput(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && handleSubmit()}

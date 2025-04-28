@@ -90,4 +90,68 @@ API sits between the front-end, the Qdrant database, and AIs. The front-end send
 
 ### Front-end
 
-...
+The front-end of this application is built using **Next.js**, **Tailwind CSS**, and **TypeScript**. It is a recreation a website, with the addition of an interactive chatbot (M.A.I.A.) that helps users find information.
+
+#### Main Features:
+- **AI Chatbot**: The chatbot allows users to search for information and provides answers based on user queries.
+- **Responsive Design**: The layout is optimized for both desktop and mobile devices using Tailwind CSS for quick styling.
+- **State Management**: React hooks like **`useState`** and **`useEffect`** are used for state management and component lifecycle handling.
+- **Dynamic Interaction**: The chatbot processes user inputs and displays both user messages and bot replies.
+
+#### Key Components:
+1. **Chatbot (`client/components/aiChatPopup/index.tsx`)**:
+   - Manages the chat history and processes user inputs.
+   - Sends messages to the API and displays responses from the backend (AI model).
+   - Utilizes a unique GUID for maintaining the session for individual users.
+   - Displays a greeting message upon opening the chat window.
+
+2. **Header (`client/components/header/index.tsx`)**:
+   - Displays the navigation items.
+   - Includes a button to open the chatbot, providing access to M.A.I.A.
+
+3. **Layout (`client/components/layout/index.tsx`)**:
+   - Provides the overall structure for the webpage, wrapping the header, main content, and footer.
+   - Includes logic to show the chatbot popup window when activated.
+
+4. **HTTP Client (`client/functions/httpClient.tsx`)**:
+   - Contains functions (`get`, `post`, `put`, `del`) for communicating with the backend API to send and receive data.
+
+5. **Home Page (`client/pages/index.tsx`)**:
+   - The main page of the application, integrating the chatbot and acting as the landing page.
+
+#### How to Run the Front-end:
+
+1. Install dependencies:
+
+   ```shell
+    npm install
+   ```
+
+2. Run the development server:
+
+   ```shell
+    npm run dev
+   ```
+
+Open your browser and visit http://localhost:3000 to view the application in action.
+
+
+Technologies Used:
+
+- Next.js: A React-based framework with built-in support for server-side rendering and static site generation.
+
+- Tailwind CSS: A utility-first CSS framework for creating custom designs.
+
+- Axios: A promise-based HTTP client for easy API communication.
+
+- TypeScript: A superset of JavaScript that adds static types for better code quality and maintainability.
+
+- React: While Next.js is used as the framework, it’s built on top of React for building user interfaces with components.
+
+Design Notes:
+
+- The chatbot is implemented as a popup element that can be opened or closed by the user. It uses state management hooks to ensure the proper flow of messages.
+
+- The chatbot sends user inputs to the backend via API calls and displays the responses in the chat window.
+
+- Tailwind CSS ensures the application is highly customizable and responsive across various screen sizes.
