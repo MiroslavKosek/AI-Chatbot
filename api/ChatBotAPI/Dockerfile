@@ -21,9 +21,24 @@ FROM build AS publish
 ARG BUILD_CONFIGURATION=Release
 RUN dotnet publish "ChatBotAPI.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
 
+# This stage is used for web scraping
+FROM python:3.13.3-alpine3.21 AS scraper
+WORKDIR /scraper
+
+RUN pip install requests beautifulsoup4
+
+COPY ["./scrapers/URLsScraper.py", "./"]
+COPY ["./scrapers/WebContentScraper.py", "./"]
+
+RUN mkdir -p ScrappedData
+
+RUN python URLsScraper.py && \
+    python WebContentScraper.py && \
+    cp -r scraped_texts/* ScrappedData/
+
 # This stage is used in production or when running from VS in regular mode (Default when not using the Debug configuration)
 FROM base AS final
 WORKDIR /app
-COPY ["ScrappedData/", "./ScrappedData/"]
+COPY --from=scraper /scraper/ScrappedData/ ./ScrappedData/
 COPY --from=publish /app/publish .
 ENTRYPOINT ["dotnet", "ChatBotAPI.dll"]

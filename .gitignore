@@ -1,6 +1,8 @@
 ai-chatbot/
 bge-m3/
 qdrant_data/
+scraped_texts/
+links.txt
 
 # Created by https://www.toptal.com/developers/gitignore/api/python,csharp,visualstudio,visualstudiocode,nextjs,windows,linux
 # Edit at https://www.toptal.com/developers/gitignore?templates=python,csharp,visualstudio,visualstudiocode,nextjs,windows,linux

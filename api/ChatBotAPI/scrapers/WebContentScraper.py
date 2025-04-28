@@ -1,3 +1,5 @@
+#!/usr/bin/python3
+
 ## This script reads URLs from links.txt, downloads each webpage, cleans the text content, and saves it into separate .txt files inside the 'scraped_texts' folder.
 
 import requests
@@ -35,23 +37,31 @@ def scrape_and_save(url, output_dir):
         with open(filepath, 'w', encoding='utf-8') as file:
             file.write(cleaned_text)
 
-        print(f"Uloženo: {filepath}")
+        print(f"Saved: {filepath}")
         return True
     except Exception as e:
-        print(f"Chyba při zpracování {url}: {str(e)}")
+        print(f"Error in processing {url}: {str(e)}")
         return False
 
 def process_links_from_file():
-    output_dir = 'scraped_texts'
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    
+    output_dir = os.path.join(script_dir, 'scraped_texts')
     os.makedirs(output_dir, exist_ok=True)
-
+    
+    links_file = os.path.join(script_dir, 'links.txt')
+    
     try:
-        with open('links.txt', 'r', encoding='utf-8') as file:
+        with open(links_file, 'r', encoding='utf-8') as file:
             urls = [line.strip() for line in file if line.strip()]
+        print(f"Reading URLs from: {links_file}")
     except FileNotFoundError:
-        print("Soubor links1.txt nebyl nalezen.")
+        print(f"The links file was not found: {links_file}")
         return
 
+    print(f"Found {len(urls)} URLs to process")
+    print(f"Output directory: {output_dir}")
+    
     for url in urls:
         if url:
             scrape_and_save(url, output_dir)
