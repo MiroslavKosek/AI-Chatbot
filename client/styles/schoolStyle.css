@@ -1,0 +1,10 @@
+
+
+.states *:not(:first-child) {
+    margin-left: 37px;
+}
+
+
+.bestTeachers *:not(:first-child) {
+    margin-left: 20px;
+}
