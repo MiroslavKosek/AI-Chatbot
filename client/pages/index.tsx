@@ -1,6 +1,4 @@
-import Head from "next/head";
 import { useState } from "react";
-import router from "next/router";
 import Chatbot from "../components/aiChatPopup";
 
 export default function Home() {
@@ -14,7 +12,7 @@ export default function Home() {
     <div>
       {isChatOpen && (
         <div
-          className="relative top-0 left-0  flex justify-end items-end"
+          className="relative top-0 left-0 flex justify-end items-end"
           onClick={toggleChat}
         >
           <div

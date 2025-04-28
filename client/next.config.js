@@ -2,7 +2,7 @@
 const nextConfig = {
   allowedDevOrigins: [
     "http://localhost:3000", 
-    "http://10.38.144.77:3000", 
+    "http://host.docker.internal:3000",
   ],
   reactStrictMode: true,
 }

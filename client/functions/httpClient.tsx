@@ -2,7 +2,7 @@ import axios, { AxiosRequestConfig } from 'axios';
 
 // defaultní url k api
 const instance = axios.create({
-  baseURL: 'http://192.168.153.200:5252/WeatherForecast',
+  baseURL: 'http://host.docker.internal:8080/ChatBot',
 });
 
 const defaultHeaders = {
