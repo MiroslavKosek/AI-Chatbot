@@ -138,20 +138,20 @@ Open your browser and visit http://localhost:3000 to view the application in act
 
 Technologies Used:
 
-    Next.js: A React-based framework with built-in support for server-side rendering and static site generation.
+- Next.js: A React-based framework with built-in support for server-side rendering and static site generation.
 
-    Tailwind CSS: A utility-first CSS framework for creating custom designs.
+- Tailwind CSS: A utility-first CSS framework for creating custom designs.
 
-    Axios: A promise-based HTTP client for easy API communication.
+- Axios: A promise-based HTTP client for easy API communication.
 
-    TypeScript: A superset of JavaScript that adds static types for better code quality and maintainability.
+- TypeScript: A superset of JavaScript that adds static types for better code quality and maintainability.
 
-    React: While Next.js is used as the framework, it’s built on top of React for building user interfaces with components.
+- React: While Next.js is used as the framework, it’s built on top of React for building user interfaces with components.
 
 Design Notes:
 
-    The chatbot is implemented as a popup element that can be opened or closed by the user. It uses state management hooks to ensure the proper flow of messages.
+- The chatbot is implemented as a popup element that can be opened or closed by the user. It uses state management hooks to ensure the proper flow of messages.
 
-    The chatbot sends user inputs to the backend via API calls and displays the responses in the chat window.
+- The chatbot sends user inputs to the backend via API calls and displays the responses in the chat window.
 
-    Tailwind CSS ensures the application is highly customizable and responsive across various screen sizes.
+- Tailwind CSS ensures the application is highly customizable and responsive across various screen sizes.

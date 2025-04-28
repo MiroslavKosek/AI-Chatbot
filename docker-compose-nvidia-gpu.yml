@@ -1,5 +1,26 @@
 services:
 
+  client:
+    image: client
+    container_name: client
+    build:
+      context: ./client
+      target: production
+      dockerfile: Dockerfile
+    volumes:
+        - ./client:/app
+        - /app/node_modules
+        - /app/.next
+    ports:
+      - "3000:3000"
+    depends_on:
+      - api
+    links:
+      - api
+    restart: always
+    networks:
+      - ai-chatbot-docker
+
   api:
     image: api
     container_name: api
